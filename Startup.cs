@@ -9,6 +9,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using ShorteningLinks.Models;
+using ShorteningLinks.Services;
 
 namespace ShorteningLinks
 {
@@ -24,6 +27,15 @@ namespace ShorteningLinks
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ShorteningLinksDatabaseSettings>(
+                Configuration.GetSection(nameof(ShorteningLinksDatabaseSettings))
+            );
+
+            services.AddSingleton<IShorteningLinksDatabaseSettings>(sp =>
+                sp.GetRequiredService<IOptions<ShorteningLinksDatabaseSettings>>().Value);
+
+            services.AddSingleton<LinkService>();
+
             services.AddControllers();
         }
 
@@ -34,6 +46,10 @@ namespace ShorteningLinks
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseCors(builder => builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
 
             app.UseRouting();
 
